@@ -1,28 +1,64 @@
-// ==UserScript==
-// @name         海文超强二次搜索插件(加密滞后版)
-// @namespace    http://tampermonkey.net/
-// @version      2.0
-// @description  在选中文字旁边显示浮动工具条进行二次搜索，代码加密滞后
-// @match        *://*/*
-// @grant        GM_xmlhttpRequest
-// @grant        GM_addStyle
-// @connect      example.com
-// ==/UserScript==
+const websiteList = [
+    { name: "微软bing", address: "https://cn.bing.com/search?q=" },
+    { name: "百度", address: "https://www.baidu.com/s?wd="},
+    { name: "github", address: "https://github.com/search?q=" },
+    { name: "B站", address: "https://search.bilibili.com/all?keyword=" },
+    { name: "DOI1", address: "https://www.sci-hub.wf/" },
+    { name: "DOI2", address: "https://www.sci-hub.ee/" },
+    { name: "DOI3", address: "https://www.sci-hub.ren/" },
+    { name: "DOI4", address: "https://pubmed.ncbi.nlm.nih.gov/" },
+    { name: "英→中", address: "https://fanyi.baidu.com/mtpe-individual/multimodal?&lang=en2zh&query="},
+    { name: "中→英", address: "https://fanyi.baidu.com/mtpe-individual/multimodal?&lang=zh2en&query="},
+    { name: "知乎", address: "https://www.zhihu.com/search?type=content&q=" }
+];
 
-(function() {
-    'use strict';
+GM_addStyle(`
+    #floatingToolbar {
+        position: absolute;
+        background: lightblue;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 5px;
+        display: none;
+        z-index: 9999;
+    }
+    #floatingToolbar button {
+        margin: 2px;
+        padding: 3px 6px;
+        font-size: 12px;
+    }
+`);
 
-    // 动态加载远程脚本
-    GM_xmlhttpRequest({
-        method: 'GET',
-        url: 'https://example.com/HaiwenSecondSearch.js',  // 替换为你的远程脚本URL
-        onload: function(response) {
-            const script = document.createElement('script');
-            script.textContent = response.responseText;
-            document.body.appendChild(script);
-        },
-        onerror: function() {
-            console.error('Failed to load remote script');
+const toolbar = document.createElement('div');
+toolbar.id = 'floatingToolbar';
+document.body.appendChild(toolbar);
+
+websiteList.forEach(site => {
+    const button = document.createElement('button');
+    button.textContent = site.name;
+    button.addEventListener('click', () => {
+        const selection = window.getSelection().toString().trim();
+        if (selection) {
+            window.open(site.address + encodeURIComponent(selection), '_blank');
         }
     });
-})();
+    toolbar.appendChild(button);
+});
+
+document.addEventListener('mouseup', (e) => {
+    const selection = window.getSelection().toString().trim();
+    if (selection) {
+        const rect = window.getSelection().getRangeAt(0).getBoundingClientRect();
+        toolbar.style.left = `${rect.left + window.pageXOffset}px`;
+        toolbar.style.top = `${rect.bottom + window.pageYOffset}px`;
+        toolbar.style.display = 'block';
+    } else {
+        toolbar.style.display = 'none';
+    }
+});
+
+document.addEventListener('mousedown', (e) => {
+    if (!toolbar.contains(e.target)) {
+        toolbar.style.display = 'none';
+    }
+});
