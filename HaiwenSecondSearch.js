@@ -1,8 +1,7 @@
 (function() {
-    console.log('HaiwenSecondSearch script loaded successfully!');
+   'use strict';
     
-    // 示例逻辑，可以是搜索引擎相关的代码
-    const websiteList = [
+        const websiteList = [
         { name: "微软bing", address: "https://cn.bing.com/search?q=" },
         { name: "百度", address: "https://www.baidu.com/s?wd="},
         { name: "github", address: "https://github.com/search?q=" },
